@@ -1,12 +1,17 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel
 from typing import Dict, List
 import json
 import sqlite3
 from datetime import datetime
 
 app = FastAPI()
+
+class UserCredentials(BaseModel):
+    username: str
+    password: str
 
 # Инициализация БД
 def init_db():
@@ -124,7 +129,9 @@ typing_users: Dict[str, set] = {}
 
 
 @app.post("/register")
-async def register_user(username: str, password: str):
+async def register_user(credentials: UserCredentials):
+    username = credentials.username
+    password = credentials.password
     conn = sqlite3.connect('chat.db')
     c = conn.cursor()
     try:
@@ -138,7 +145,9 @@ async def register_user(username: str, password: str):
 
 
 @app.post("/login")
-async def login_user(username: str, password: str):
+async def login_user(credentials: UserCredentials):
+    username = credentials.username
+    password = credentials.password
     conn = sqlite3.connect('chat.db')
     c = conn.cursor()
     c.execute("SELECT id FROM users WHERE username = ? AND password = ?", (username, password))
@@ -182,8 +191,8 @@ async def login_page():
                 const password = document.getElementById('password').value;
                 const response = await fetch('/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ username, password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
                 if (response.ok) {
                     localStorage.setItem('username', username);
@@ -224,15 +233,15 @@ async def register_page():
             </form>
             <div class="link"><a href="/login">¿Ya tienes cuenta? Inicia sesión</a></div>
         </div>
-        <script>
+            <script>
             document.getElementById('registerForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
                 const response = await fetch('/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ username, password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
                 if (response.ok) {
                     alert('Usuario registrado. Ahora inicia sesión.');
