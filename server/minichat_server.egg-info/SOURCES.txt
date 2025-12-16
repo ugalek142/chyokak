@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+minichat_server.egg-info/PKG-INFO
+minichat_server.egg-info/SOURCES.txt
+minichat_server.egg-info/dependency_links.txt
+minichat_server.egg-info/requires.txt
+minichat_server.egg-info/top_level.txt

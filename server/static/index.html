@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MiniChat</title>
+  <style>
+    :root {
+      --bg-color: #f0f0f0;
+      --sidebar-bg: #ffffff;
+      --chat-bg: #e5ddd5;
+      --message-own: #dcf8c6;
+      --message-other: #ffffff;
+      --text-color: #333;
+      --border-color: #ddd;
+      --header-bg: #075e54;
+      --header-text: #fff;
+      --input-bg: #f0f0f0;
+      --button-bg: #25d366;
+      --button-hover: #128c7e;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --sidebar-bg: #1e1e1e;
+      --chat-bg: #0a0a0a;
+      --message-own: #005c4b;
+      --message-other: #2a2a2a;
+      --text-color: #e0e0e0;
+      --border-color: #333;
+      --header-bg: #1e1e1e;
+      --header-text: #fff;
+      --input-bg: #2a2a2a;
+      --button-bg: #25d366;
+      --button-hover: #128c7e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 350px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      background: var(--header-bg);
+      color: var(--header-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .sidebar-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      background: none;
+      border: none;
+      color: var(--header-text);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .search {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .search input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.2s;
+    }
+
+    .chat-item:hover, .chat-item.active {
+      background: var(--chat-bg);
+    }
+
+    .chat-item img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-right: 15px;
+    }
+
+    .chat-info {
+      flex: 1;
+    }
+
+    .chat-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .last-msg {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .chat-time {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-content {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+    }
+
+    .chat-header {
+      padding: 20px;
+      background: var(--header-bg);
+      color: var(--header-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-title {
+      font-size: 18px;
+    }
+
+    .chat-status {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: var(--chat-bg);
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 10px;
+      align-items: flex-end;
+    }
+
+    .message.own {
+      justify-content: flex-end;
+    }
+
+    .message.other {
+      justify-content: flex-start;
+    }
+
+    .message .avatar {
+      width: 30px;
+      height: 30px;
+      margin: 0 10px;
+    }
+
+    .bubble {
+      max-width: 60%;
+      padding: 10px 15px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .message.own .bubble {
+      background: var(--message-own);
+      margin-left: auto;
+    }
+
+    .message.other .bubble {
+      background: var(--message-other);
+    }
+
+    .sender {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .time {
+      font-size: 11px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    .reaction {
+      background: rgba(0,0,0,0.1);
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .image-msg img {
+      max-width: 200px;
+      border-radius: 10px;
+    }
+
+    .input-area {
+      padding: 20px;
+      background: var(--sidebar-bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .input-area button {
+      padding: 10px 15px;
+      background: var(--button-bg);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .input-area button:hover {
+      background: var(--button-hover);
+    }
+
+    .emoji-picker {
+      position: absolute;
+      bottom: 70px;
+      left: 20px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+
+    .emoji-picker.show {
+      display: grid;
+    }
+
+    .emoji-picker button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .user-list {
+      width: 200px;
+      border-left: 1px solid var(--border-color);
+      padding: 20px;
+      background: var(--sidebar-bg);
+      overflow-y: auto;
+    }
+
+    .user-list h3 {
+      margin-top: 0;
+      color: var(--text-color);
+    }
+
+    .user-list ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .user-list li {
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-color);
+    }
+
+    .typing-indicator {
+      font-style: italic;
+      color: #666;
+      padding: 10px 20px;
+    }
+
+    .new-chat-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      display: none;
+    }
+
+    .new-chat-modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--sidebar-bg);
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .modal-content button {
+      width: 100%;
+      padding: 10px;
+      background: var(--button-bg);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="user-info">
+          <div class="avatar" id="user-avatar"></div>
+          <div>
+            <div id="user-name"></div>
+          </div>
+        </div>
+        <div class="sidebar-controls">
+          <button class="btn" id="theme-toggle">🌙</button>
+          <button class="btn" id="new-chat">➕</button>
+          <button class="btn" id="logout">🚪</button>
+        </div>
+      </div>
+      <div class="search">
+        <input type="text" id="search" placeholder="Buscar chats...">
+      </div>
+      <div class="chat-list" id="chat-list"></div>
+    </div>
+    <div class="chat-area">
+      <div class="chat-header">
+        <div>
+          <div class="chat-title" id="chat-name">Selecciona un chat</div>
+          <div class="chat-status" id="chat-status"></div>
+        </div>
+      </div>
+      <div class="chat-content">
+        <div class="messages" id="messages"></div>
+        <div class="user-list">
+          <h3>Usuarios en línea</h3>
+          <ul id="user-list"></ul>
+        </div>
+      </div>
+      <div class="typing-indicator" id="typing-indicator" style="display: none;"></div>
+      <div class="input-area">
+        <input type="file" id="file-input" class="file-input" accept="image/*">
+        <button id="file-btn">📎</button>
+        <input type="text" id="text" placeholder="Escribe un mensaje...">
+        <button id="emoji-btn">😊</button>
+        <button id="send">Enviar</button>
+      </div>
+      <div class="emoji-picker" id="emoji-picker">
+        <button>😀</button><button>😂</button><button>😍</button><button>😢</button><button>😡</button>
+        <button>👍</button><button>👎</button><button>❤️</button><button>🔥</button><button>🎉</button>
+        <button>😎</button><button>🤔</button><button>😴</button><button>🥳</button><button>🤗</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="new-chat-modal" id="new-chat-modal">
+    <div class="modal-content">
+      <h3>Nuevo Chat</h3>
+      <input type="text" id="new-chat-id" placeholder="ID del chat">
+      <button id="create-chat">Crear</button>
+    </div>
+  </div>
+
+  <script src="/static/client.js"></script>
+</body>
+</html>
