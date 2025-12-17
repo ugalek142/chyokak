@@ -367,18 +367,19 @@
   const userName = localStorage.getItem('username');
   if (!userName) {
     window.location.href = '/login';
-  const $mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const $sidebar = document.getElementById('sidebar');
   const $overlay = document.getElementById('overlay');
   const $mobileClose = document.getElementById('mobile-close');
+  const $backArrow = document.getElementById('back-arrow');
+  const $menuBtnMobile = document.getElementById('menu-btn-mobile');
 
-  console.log('Mobile elements:', $mobileMenuBtn, $sidebar, $overlay, $mobileClose);
+  console.log('Mobile elements:', $sidebar, $overlay, $mobileClose, $backArrow, $menuBtnMobile);
 
   // Мобильное меню
-  if ($mobileMenuBtn) {
-    $mobileMenuBtn.addEventListener('click', () => {
-      console.log('Mobile menu button clicked');
-      alert('Menu button clicked'); // Для тестирования
+  if ($menuBtnMobile) {
+    $menuBtnMobile.addEventListener('click', () => {
+      console.log('Menu button mobile clicked');
+      alert('Menu button mobile clicked');
       $sidebar.classList.add('open');
       $overlay.classList.add('show');
     });
@@ -393,10 +394,10 @@
     });
   }
 
-  if ($overlay) {
-    $overlay.addEventListener('click', () => {
-      console.log('Overlay clicked');
-      alert('Overlay clicked');
+  if ($backArrow) {
+    $backArrow.addEventListener('click', () => {
+      console.log('Back arrow clicked');
+      alert('Back arrow clicked');
       $sidebar.classList.remove('open');
       $overlay.classList.remove('show');
     });

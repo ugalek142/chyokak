@@ -389,14 +389,20 @@
       color: var(--text-color);
     }
 
-    .modal-content button {
-      width: 100%;
-      padding: 10px;
-      background: var(--button-bg);
-      color: white;
+    .menu-btn-mobile {
+      display: none;
+      background: none;
       border: none;
-      border-radius: 5px;
+      color: var(--header-text);
+      font-size: 24px;
       cursor: pointer;
+      margin-right: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .menu-btn-mobile {
+        display: block;
+      }
     }
 
     /* Мобильная версия */
@@ -471,22 +477,6 @@
 
     .mobile-menu-btn {
       display: none;
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 1001;
-      background: var(--header-bg);
-      color: var(--header-text);
-      border: none;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-      .mobile-menu-btn {
-        display: block;
-      }
     }
 
     .overlay {
@@ -512,7 +502,6 @@
   </style>
 </head>
 <body>
-  <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
   <div class="overlay" id="overlay"></div>
   <div class="app">
     <div class="sidebar" id="sidebar">
@@ -537,6 +526,8 @@
     </div>
     <div class="chat-area">
       <div class="chat-header">
+        <button class="menu-btn-mobile" id="menu-btn-mobile">☰</button>
+        <button class="back-arrow" id="back-arrow">←</button>
         <div>
           <div class="chat-title" id="chat-name">Selecciona un chat</div>
           <div class="chat-status" id="chat-status"></div>
