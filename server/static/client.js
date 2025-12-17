@@ -325,6 +325,7 @@
   });
 
   $themeToggle.addEventListener('click', () => {
+    console.log('Theme toggle clicked');
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
@@ -351,6 +352,7 @@
   });
 
   document.getElementById('logout').addEventListener('click', () => {
+    console.log('Logout clicked');
     localStorage.removeItem('username');
     window.location.href = '/login';
   });
@@ -413,6 +415,12 @@
     addChatToList(inviteChatId);
     // Очистить URL
     window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  let userName = localStorage.getItem('username');
+  if (!userName) {
+    window.location.href = '/login';
+    return;
   }
 
   return;
