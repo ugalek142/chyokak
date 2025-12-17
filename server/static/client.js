@@ -1,13 +1,14 @@
 (() => {
-  const wsUrl = (location.protocol === 'https:') ? 'wss://' + location.host + '/ws' : 'ws://' + location.host + '/ws';
-  let socket = null;
-  let currentUser = '';
-  let currentChat = null;
-  let joinedChats = new Set();
-  let messageElements = []; // Для реакций
+  document.addEventListener('DOMContentLoaded', () => {
+    const wsUrl = (location.protocol === 'https:') ? 'wss://' + location.host + '/ws' : 'ws://' + location.host + '/ws';
+    let socket = null;
+    let currentUser = '';
+    let currentChat = null;
+    let joinedChats = new Set();
+    let messageElements = []; // Для реакций
 
-  const $userName = document.getElementById('user-name');
-  const $userAvatar = document.getElementById('user-avatar');
+    const $userName = document.getElementById('user-name');
+    const $userAvatar = document.getElementById('user-avatar');
   const $chatName = document.getElementById('chat-name');
   const $chatStatus = document.getElementById('chat-status');
   const $chatList = document.getElementById('chat-list');
@@ -377,6 +378,7 @@
   if ($mobileMenuBtn) {
     $mobileMenuBtn.addEventListener('click', () => {
       console.log('Mobile menu button clicked');
+      alert('Menu button clicked'); // Для тестирования
       $sidebar.classList.add('open');
       $overlay.classList.add('show');
     });
@@ -385,6 +387,7 @@
   if ($mobileClose) {
     $mobileClose.addEventListener('click', () => {
       console.log('Mobile close button clicked');
+      alert('Close button clicked');
       $sidebar.classList.remove('open');
       $overlay.classList.remove('show');
     });
@@ -393,6 +396,7 @@
   if ($overlay) {
     $overlay.addEventListener('click', () => {
       console.log('Overlay clicked');
+      alert('Overlay clicked');
       $sidebar.classList.remove('open');
       $overlay.classList.remove('show');
     });
@@ -400,7 +404,7 @@
 
   // Закрыть sidebar при клике на элемент чата на мобильных
   document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 600 && e.target.closest('.chat-item')) {
+    if (window.innerWidth <= 768 && e.target.closest('.chat-item')) {
       $sidebar.classList.remove('open');
       $overlay.classList.remove('show');
     }
@@ -427,4 +431,5 @@
   }
   connect(userName);
 
+  });
 })();
