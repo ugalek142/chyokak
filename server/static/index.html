@@ -389,89 +389,46 @@
       color: var(--text-color);
     }
 
-    .menu-btn-mobile {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--header-text);
-      font-size: 24px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-
-    @media (max-width: 768px) {
-      .menu-btn-mobile {
-        display: block;
-      }
-    }
-
     /* Мобильная версия */
     @media (max-width: 768px) {
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: -350px;
-        height: 100vh;
-        width: 300px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-      }
-
-      .sidebar.open {
-        left: 0;
-      }
-
       .app {
-        flex-direction: column;
+        position: relative;
+      }
+
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        display: block;
       }
 
       .chat-area {
-        flex: 1;
-        width: 100%;
+        display: none;
       }
 
-      .chat-content {
-        flex-direction: column;
+      .app.chat-view .sidebar {
+        display: none;
       }
 
-      .user-list {
-        width: 100%;
-        border-left: none;
-        border-top: 1px solid var(--border-color);
-        max-height: 150px;
-      }
-
-      .messages {
-        padding: 10px;
-      }
-
-      .bubble {
-        max-width: 80%;
-      }
-
-      .input-area {
-        padding: 10px;
-      }
-
-      .sidebar-header {
-        padding: 15px;
+      .app.chat-view .chat-area {
+        display: flex;
       }
 
       .chat-header {
-        padding: 15px;
+        position: relative;
       }
 
-      .chat-item {
-        padding: 10px 15px;
+      .back-arrow {
+        display: none;
       }
 
-      .btn {
-        font-size: 16px;
+      .app.chat-view .back-arrow {
+        display: block;
       }
 
-      .modal-content {
-        width: 90%;
-        max-width: 300px;
+      .menu-btn-mobile {
+        display: none;
       }
     }
 
@@ -489,20 +446,9 @@
       background: rgba(0,0,0,0.5);
       z-index: 999;
     }
-
-    .mobile-close {
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      .mobile-close {
-        display: block;
-      }
-    }
   </style>
 </head>
 <body>
-  <div class="overlay" id="overlay"></div>
   <div class="app">
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
@@ -513,7 +459,6 @@
           </div>
         </div>
         <div class="sidebar-controls">
-          <button class="btn mobile-close" id="mobile-close">✕</button>
           <button class="btn" id="theme-toggle">🌙</button>
           <button class="btn" id="new-chat">➕</button>
           <button class="btn" id="logout">🚪</button>
@@ -526,7 +471,6 @@
     </div>
     <div class="chat-area">
       <div class="chat-header">
-        <button class="menu-btn-mobile" id="menu-btn-mobile">☰</button>
         <button class="back-arrow" id="back-arrow">←</button>
         <div>
           <div class="chat-title" id="chat-name">Selecciona un chat</div>

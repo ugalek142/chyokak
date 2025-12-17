@@ -62,6 +62,9 @@
     $messages.innerHTML = '';
     $chatStatus.textContent = 'Cargando...';
     messageElements = [];
+    if (window.innerWidth <= 768) {
+      document.querySelector('.app').classList.add('chat-view');
+    }
   }
 
   function addMessage(msg, index = null) {
@@ -368,48 +371,18 @@
   if (!userName) {
     window.location.href = '/login';
   const $sidebar = document.getElementById('sidebar');
-  const $overlay = document.getElementById('overlay');
-  const $mobileClose = document.getElementById('mobile-close');
   const $backArrow = document.getElementById('back-arrow');
-  const $menuBtnMobile = document.getElementById('menu-btn-mobile');
 
-  console.log('Mobile elements:', $sidebar, $overlay, $mobileClose, $backArrow, $menuBtnMobile);
+  console.log('Mobile elements:', $sidebar, $backArrow);
 
   // Мобильное меню
-  if ($menuBtnMobile) {
-    $menuBtnMobile.addEventListener('click', () => {
-      console.log('Menu button mobile clicked');
-      alert('Menu button mobile clicked');
-      $sidebar.classList.add('open');
-      $overlay.classList.add('show');
-    });
-  }
-
-  if ($mobileClose) {
-    $mobileClose.addEventListener('click', () => {
-      console.log('Mobile close button clicked');
-      alert('Close button clicked');
-      $sidebar.classList.remove('open');
-      $overlay.classList.remove('show');
-    });
-  }
-
   if ($backArrow) {
     $backArrow.addEventListener('click', () => {
       console.log('Back arrow clicked');
       alert('Back arrow clicked');
-      $sidebar.classList.remove('open');
-      $overlay.classList.remove('show');
+      document.querySelector('.app').classList.remove('chat-view');
     });
   }
-
-  // Закрыть sidebar при клике на элемент чата на мобильных
-  document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768 && e.target.closest('.chat-item')) {
-      $sidebar.classList.remove('open');
-      $overlay.classList.remove('show');
-    }
-  });
 
   let inviteChatId = null;
 
