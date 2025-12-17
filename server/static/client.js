@@ -419,7 +419,7 @@
 
   let userName = localStorage.getItem('username');
   if (!userName) {
-    window.location.href = '/login';
+    window.location.href = '/register';
     return;
   }
 
