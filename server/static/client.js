@@ -18,8 +18,9 @@
   const $emojiPicker = document.getElementById('emoji-picker');
   const $newChat = document.getElementById('new-chat');
   const $newChatModal = document.getElementById('new-chat-modal');
-  const $newChatId = document.getElementById('new-chat-id');
-  const $createChat = document.getElementById('create-chat');
+  const $inviteLink = document.getElementById('invite-link');
+  const $copyLink = document.getElementById('copy-link');
+  const $closeModal = document.getElementById('close-modal');
   const $search = document.getElementById('search');
   const $themeToggle = document.getElementById('theme-toggle');
   const $fileBtn = document.getElementById('file-btn');
@@ -246,17 +247,22 @@
   }
 
   $newChat.addEventListener('click', () => {
+    const chatId = crypto.randomUUID();
+    const inviteUrl = `${window.location.origin}${window.location.pathname}?chat=${chatId}`;
+    $inviteLink.value = inviteUrl;
+    addChatToList(chatId);
+    switchChat(chatId);
     $newChatModal.classList.add('show');
   });
 
-  $createChat.addEventListener('click', () => {
-    const chatId = $newChatId.value.trim();
-    if (chatId) {
-      addChatToList(chatId);
-      switchChat(chatId);
-      $newChatModal.classList.remove('show');
-      $newChatId.value = '';
-    }
+  $copyLink.addEventListener('click', () => {
+    $inviteLink.select();
+    document.execCommand('copy');
+    alert('Enlace copiado al portapapeles');
+  });
+
+  $closeModal.addEventListener('click', () => {
+    $newChatModal.classList.remove('show');
   });
 
   $send.addEventListener('click', () => {
@@ -352,29 +358,50 @@
   const $overlay = document.getElementById('overlay');
   const $mobileClose = document.getElementById('mobile-close');
 
+  console.log('Mobile elements:', $mobileMenuBtn, $sidebar, $overlay, $mobileClose);
+
   // Мобильное меню
-  $mobileMenuBtn.addEventListener('click', () => {
-    $sidebar.classList.add('open');
-    $overlay.classList.add('show');
-  });
+  if ($mobileMenuBtn) {
+    $mobileMenuBtn.addEventListener('click', () => {
+      console.log('Mobile menu button clicked');
+      $sidebar.classList.add('open');
+      $overlay.classList.add('show');
+    });
+  }
 
-  $mobileClose.addEventListener('click', () => {
-    $sidebar.classList.remove('open');
-    $overlay.classList.remove('show');
-  });
+  if ($mobileClose) {
+    $mobileClose.addEventListener('click', () => {
+      console.log('Mobile close button clicked');
+      $sidebar.classList.remove('open');
+      $overlay.classList.remove('show');
+    });
+  }
 
-  $overlay.addEventListener('click', () => {
-    $sidebar.classList.remove('open');
-    $overlay.classList.remove('show');
-  });
+  if ($overlay) {
+    $overlay.addEventListener('click', () => {
+      console.log('Overlay clicked');
+      $sidebar.classList.remove('open');
+      $overlay.classList.remove('show');
+    });
+  }
 
   // Закрыть sidebar при клике на элемент чата на мобильных
   document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768 && e.target.closest('.chat-item')) {
+    if (window.innerWidth <= 600 && e.target.closest('.chat-item')) {
       $sidebar.classList.remove('open');
       $overlay.classList.remove('show');
     }
   });
+
+  // Автоматическое присоединение по ссылке
+  const urlParams = new URLSearchParams(window.location.search);
+  const inviteChatId = urlParams.get('chat');
+  if (inviteChatId) {
+    addChatToList(inviteChatId);
+    switchChat(inviteChatId);
+    // Очистить URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 
   return;
   }

@@ -400,7 +400,7 @@
     }
 
     /* Мобильная версия */
-    @media (max-width: 768px) {
+    @media (max-width: 600px) {
       .sidebar {
         position: fixed;
         top: 0;
@@ -568,8 +568,10 @@
   <div class="new-chat-modal" id="new-chat-modal">
     <div class="modal-content">
       <h3>Nuevo Chat</h3>
-      <input type="text" id="new-chat-id" placeholder="ID del chat">
-      <button id="create-chat">Crear</button>
+      <p>Comparte este enlace para invitar a otros:</p>
+      <input type="text" id="invite-link" readonly>
+      <button id="copy-link">Copiar enlace</button>
+      <button id="close-modal">Cerrar</button>
     </div>
   </div>
 
