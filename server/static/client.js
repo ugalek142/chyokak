@@ -401,6 +401,7 @@
   const urlParams = new URLSearchParams(window.location.search);
   inviteChatId = urlParams.get('chat');
   if (inviteChatId) {
+    localStorage.setItem('inviteChat', inviteChatId);
     addChatToList(inviteChatId);
     if (window.innerWidth <= 768) {
       document.querySelector('.app').classList.add('chat-view');
@@ -413,6 +414,13 @@
   if (!userName) {
     window.location.href = '/register';
     return;
+  }
+
+  // Cargar chat de invitación si existe
+  inviteChatId = localStorage.getItem('inviteChat');
+  if (inviteChatId) {
+    addChatToList(inviteChatId);
+    localStorage.removeItem('inviteChat');
   }
 
   connect(userName);
