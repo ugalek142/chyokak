@@ -213,6 +213,11 @@
     socket.addEventListener('open', () => {
       // Отправить join для инициализации пользователя
       socket.send(JSON.stringify({ type: 'join', payload: { user: currentUser } }));
+      // Если есть приглашение, присоединиться к чату
+      if (inviteChatId) {
+        setTimeout(() => switchChat(inviteChatId), 100); // Небольшая задержка
+        inviteChatId = null;
+      }
     });
 
     socket.addEventListener('message', (ev) => {
@@ -255,10 +260,16 @@
     $newChatModal.classList.add('show');
   });
 
-  $copyLink.addEventListener('click', () => {
-    $inviteLink.select();
-    document.execCommand('copy');
-    alert('Enlace copiado al portapapeles');
+  $copyLink.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($inviteLink.value);
+      alert('Enlace copiado al portapapeles');
+    } catch (err) {
+      // Fallback для старых браузеров
+      $inviteLink.select();
+      document.execCommand('copy');
+      alert('Enlace copiado al portapapeles');
+    }
   });
 
   $closeModal.addEventListener('click', () => {
@@ -393,12 +404,13 @@
     }
   });
 
+  let inviteChatId = null;
+
   // Автоматическое присоединение по ссылке
   const urlParams = new URLSearchParams(window.location.search);
-  const inviteChatId = urlParams.get('chat');
+  inviteChatId = urlParams.get('chat');
   if (inviteChatId) {
     addChatToList(inviteChatId);
-    switchChat(inviteChatId);
     // Очистить URL
     window.history.replaceState({}, document.title, window.location.pathname);
   }
