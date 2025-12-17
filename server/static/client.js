@@ -32,8 +32,16 @@
     return name.charAt(0).toUpperCase();
   }
 
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   function addChatToList(chatId) {
-    if (document.querySelector(`[data-chat-id="${chatId}"]`)) return;
+    if (!chatId || document.querySelector(`[data-chat-id="${chatId}"]`)) return;
     const chatItem = document.createElement('div');
     chatItem.className = 'chat-item';
     chatItem.dataset.chatId = chatId;
@@ -49,15 +57,24 @@
     $chatList.appendChild(chatItem);
   }
 
+  let pendingChatId = null;
+
   function switchChat(chatId) {
+    if (!chatId) return;
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      alert('No conectado');
+      pendingChatId = chatId;
       return;
     }
     currentChat = chatId;
     socket.send(JSON.stringify({ type: 'switch_chat', payload: { chat_id: chatId } }));
+    if (window.innerWidth <= 768) {
+      document.querySelector('.app').classList.add('chat-view');
+    }
     document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
-    document.querySelector(`[data-chat-id="${chatId}"]`).classList.add('active');
+    const activeItem = document.querySelector(`[data-chat-id="${chatId}"]`);
+    if (activeItem) {
+      activeItem.classList.add('active');
+    }
     $chatName.textContent = chatId;
     $messages.innerHTML = '';
     $chatStatus.textContent = 'Cargando...';
@@ -222,6 +239,13 @@
         setTimeout(() => switchChat(inviteChatId), 100); // Небольшая задержка
         inviteChatId = null;
       }
+      // Если есть pending chat
+      if (pendingChatId) {
+        setTimeout(() => {
+          switchChat(pendingChatId);
+          pendingChatId = null;
+        }, 200);
+      }
     });
 
     socket.addEventListener('message', (ev) => {
@@ -256,7 +280,7 @@
   }
 
   $newChat.addEventListener('click', () => {
-    const chatId = crypto.randomUUID();
+    const chatId = generateUUID();
     const inviteUrl = `${window.location.origin}${window.location.pathname}?chat=${chatId}`;
     $inviteLink.value = inviteUrl;
     addChatToList(chatId);
@@ -329,7 +353,6 @@
   });
 
   $themeToggle.addEventListener('click', () => {
-    console.log('Theme toggle clicked');
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
@@ -356,7 +379,6 @@
   });
 
   document.getElementById('logout').addEventListener('click', () => {
-    console.log('Logout clicked');
     localStorage.removeItem('username');
     window.location.href = '/login';
   });
@@ -366,20 +388,9 @@
   document.documentElement.setAttribute('data-theme', savedTheme);
   $themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 
-  // Inicializar
-  const userName = localStorage.getItem('username');
-  if (!userName) {
-    window.location.href = '/login';
-  const $sidebar = document.getElementById('sidebar');
-  const $backArrow = document.getElementById('back-arrow');
-
-  console.log('Mobile elements:', $sidebar, $backArrow);
-
   // Мобильное меню
   if ($backArrow) {
     $backArrow.addEventListener('click', () => {
-      console.log('Back arrow clicked');
-      alert('Back arrow clicked');
       document.querySelector('.app').classList.remove('chat-view');
     });
   }
@@ -391,6 +402,9 @@
   inviteChatId = urlParams.get('chat');
   if (inviteChatId) {
     addChatToList(inviteChatId);
+    if (window.innerWidth <= 768) {
+      document.querySelector('.app').classList.add('chat-view');
+    }
     // Очистить URL
     window.history.replaceState({}, document.title, window.location.pathname);
   }
@@ -401,8 +415,6 @@
     return;
   }
 
-  return;
-  }
   connect(userName);
 
   });
