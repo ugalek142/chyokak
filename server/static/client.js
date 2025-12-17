@@ -347,7 +347,36 @@
   const userName = localStorage.getItem('username');
   if (!userName) {
     window.location.href = '/login';
-    return;
+  const $mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const $sidebar = document.getElementById('sidebar');
+  const $overlay = document.getElementById('overlay');
+  const $mobileClose = document.getElementById('mobile-close');
+
+  // Мобильное меню
+  $mobileMenuBtn.addEventListener('click', () => {
+    $sidebar.classList.add('open');
+    $overlay.classList.add('show');
+  });
+
+  $mobileClose.addEventListener('click', () => {
+    $sidebar.classList.remove('open');
+    $overlay.classList.remove('show');
+  });
+
+  $overlay.addEventListener('click', () => {
+    $sidebar.classList.remove('open');
+    $overlay.classList.remove('show');
+  });
+
+  // Закрыть sidebar при клике на элемент чата на мобильных
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && e.target.closest('.chat-item')) {
+      $sidebar.classList.remove('open');
+      $overlay.classList.remove('show');
+    }
+  });
+
+  return;
   }
   connect(userName);
 
