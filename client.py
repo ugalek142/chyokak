@@ -16,7 +16,7 @@ import websockets
 async def run(uri, chat_id, name):
     async with websockets.connect(uri) as ws:
         # join
-        await ws.send(json.dumps({"type": "join_chat", "payload": {"chat_id": chat_id}}))
+        await ws.send(json.dumps({"type": "join", "payload": {"user": name}}))
 
         async def send_loop():
             loop = asyncio.get_event_loop()
@@ -27,7 +27,7 @@ async def run(uri, chat_id, name):
                 text = line.rstrip('\n')
                 if not text:
                     continue
-                await ws.send(json.dumps({"type": "send_message", "payload": {"text": text, "user": name}}))
+                await ws.send(json.dumps({"type": "send_message", "payload": {"text": text}}))
 
         async def recv_loop():
             async for message in ws:

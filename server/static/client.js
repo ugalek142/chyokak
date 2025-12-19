@@ -15,7 +15,6 @@
   const $messages = document.getElementById('messages');
   const $text = document.getElementById('text');
   const $send = document.getElementById('send');
-  const $emojiBtn = document.getElementById('emoji-btn');
   const $emojiPicker = document.getElementById('emoji-picker');
   const $newChat = document.getElementById('new-chat');
   const $newChatModal = document.getElementById('new-chat-modal');
@@ -27,6 +26,7 @@
   const $fileBtn = document.getElementById('file-btn');
   const $fileInput = document.getElementById('file-input');
   const $typingIndicator = document.getElementById('typing-indicator');
+  const $backArrow = document.getElementById('back-arrow');
 
   function getAvatarInitials(name) {
     return name.charAt(0).toUpperCase();
@@ -112,7 +112,7 @@
     // Добавить обработчик реакции
     messageEl.querySelector('.bubble').addEventListener('click', (e) => {
       if (e.target.classList.contains('reaction')) return;
-      showReactionPicker(msg.timestamp);
+      showReactionPicker(msg.timestamp, messageEl);
     });
 
     $messages.appendChild(messageEl);
@@ -125,7 +125,7 @@
     }
   }
 
-  function showReactionPicker(messageTimestamp) {
+  function showReactionPicker(messageTimestamp, messageEl) {
     const reactions = ['👍', '❤️', '😂', '😢', '😡', '🔥', '🎉'];
     const picker = document.createElement('div');
     picker.className = 'reaction-picker';
@@ -149,7 +149,7 @@
     });
 
     document.body.appendChild(picker);
-    const rect = messageElements[messageElements.length - 1].getBoundingClientRect(); // Simplificar, usar último
+    const rect = messageEl.getBoundingClientRect();
     picker.style.left = rect.left + 'px';
     picker.style.top = (rect.top - 40) + 'px';
 
@@ -236,15 +236,13 @@
       socket.send(JSON.stringify({ type: 'join', payload: { user: currentUser } }));
       // Если есть приглашение, присоединиться к чату
       if (inviteChatId) {
-        setTimeout(() => switchChat(inviteChatId), 100); // Небольшая задержка
+        switchChat(inviteChatId);
         inviteChatId = null;
       }
       // Если есть pending chat
       if (pendingChatId) {
-        setTimeout(() => {
-          switchChat(pendingChatId);
-          pendingChatId = null;
-        }, 200);
+        switchChat(pendingChatId);
+        pendingChatId = null;
       }
     });
 

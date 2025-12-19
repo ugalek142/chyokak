@@ -6,6 +6,7 @@ from typing import Dict, List
 import json
 import sqlite3
 from datetime import datetime
+import bcrypt
 
 app = FastAPI()
 
@@ -29,6 +30,7 @@ def init_db():
         text TEXT,
         timestamp TEXT,
         type TEXT DEFAULT 'text',
+        image_data TEXT,
         FOREIGN KEY (user_id) REFERENCES users (id)
     )''')
     c.execute('''CREATE TABLE IF NOT EXISTS reactions (
@@ -37,7 +39,8 @@ def init_db():
         user_id INTEGER,
         emoji TEXT,
         FOREIGN KEY (message_id) REFERENCES messages (id),
-        FOREIGN KEY (user_id) REFERENCES users (id)
+        FOREIGN KEY (user_id) REFERENCES users (id),
+        UNIQUE(message_id, user_id, emoji)
     )''')
     conn.commit()
     conn.close()
@@ -53,11 +56,11 @@ def get_user_id(username: str) -> int:
     conn.close()
     return user[0] if user else None
 
-def save_message(chat_id: str, user_id: int, text: str, timestamp: str, msg_type: str = 'text'):
+def save_message(chat_id: str, user_id: int, text: str, timestamp: str, msg_type: str = 'text', image_data: str = None):
     conn = sqlite3.connect('chat.db')
     c = conn.cursor()
-    c.execute("INSERT INTO messages (chat_id, user_id, text, timestamp, type) VALUES (?, ?, ?, ?, ?)",
-              (chat_id, user_id, text, timestamp, msg_type))
+    c.execute("INSERT INTO messages (chat_id, user_id, text, timestamp, type, image_data) VALUES (?, ?, ?, ?, ?, ?)",
+              (chat_id, user_id, text, timestamp, msg_type, image_data))
     message_id = c.lastrowid
     conn.commit()
     conn.close()
@@ -67,13 +70,13 @@ def load_messages(chat_id: str) -> List[dict]:
     conn = sqlite3.connect('chat.db')
     c = conn.cursor()
     c.execute("""
-        SELECT m.id, m.chat_id, u.username, m.text, m.timestamp, m.type
+        SELECT m.id, m.chat_id, u.username, m.text, m.timestamp, m.type, m.image_data
         FROM messages m
         JOIN users u ON m.user_id = u.id
         WHERE m.chat_id = ?
         ORDER BY m.timestamp
     """, (chat_id,))
-    messages = [{"id": row[0], "chat_id": row[1], "user": row[2], "text": row[3], "timestamp": row[4], "type": row[5]} for row in c.fetchall()]
+    messages = [{"id": row[0], "chat_id": row[1], "user": row[2], "text": row[3], "timestamp": row[4], "type": row[5], "image_data": row[6]} for row in c.fetchall()]
     conn.close()
     return messages
 
@@ -132,10 +135,11 @@ typing_users: Dict[str, set] = {}
 async def register_user(credentials: UserCredentials):
     username = credentials.username
     password = credentials.password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     conn = sqlite3.connect('chat.db')
     c = conn.cursor()
     try:
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
         conn.commit()
         return {"message": "Usuario registrado exitosamente"}
     except sqlite3.IntegrityError:
@@ -150,12 +154,12 @@ async def login_user(credentials: UserCredentials):
     password = credentials.password
     conn = sqlite3.connect('chat.db')
     c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE username = ? AND password = ?", (username, password))
+    c.execute("SELECT id, password FROM users WHERE username = ?", (username,))
     user = c.fetchone()
     conn.close()
-    if not user:
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
-    return {"message": "Login exitoso", "username": username}
+    if user and bcrypt.checkpw(password.encode('utf-8'), user[1].encode('utf-8')):
+        return {"message": "Login exitoso", "username": username}
+    raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
 
 @app.get("/login")
@@ -407,7 +411,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         reactions_data = load_reactions(current_chat)
                         for connection in connections.get(current_chat, []):
                             await connection.send_text(json.dumps({
-                                "type": "reaction_update",
+                                "type": "reactions_update",
                                 "chat_id": current_chat,
                                 "message_timestamp": message_timestamp,
                                 "reactions": reactions_data.get(message_timestamp, {})
@@ -429,7 +433,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 image_data = payload.get("image_data")  # base64
                 user_id = get_user_id(current_user)
                 timestamp = datetime.utcnow().isoformat()
-                msg_id = save_message(current_chat, user_id, "", timestamp, "image")
+                msg_id = save_message(current_chat, user_id, "", timestamp, "image", image_data)
                 msg = {
                     "id": msg_id,
                     "chat_id": current_chat,
@@ -451,4 +455,7 @@ async def websocket_endpoint(websocket: WebSocket):
             connections[current_chat].remove(websocket)
             if current_user in users.get(current_chat, {}):
                 del users[current_chat][current_user]
+                if current_user in typing_users.get(current_chat, set()):
+                    typing_users[current_chat].remove(current_user)
                 await broadcast_user_list(current_chat)
+                await broadcast_typing(current_chat)
