@@ -16,28 +16,21 @@
   const $text = document.getElementById('text');
   const $send = document.getElementById('send');
   const $emojiPicker = document.getElementById('emoji-picker');
-  const $newChat = document.getElementById('new-chat');
-  const $newChatModal = document.getElementById('new-chat-modal');
-  const $inviteLink = document.getElementById('invite-link');
-  const $copyLink = document.getElementById('copy-link');
-  const $closeModal = document.getElementById('close-modal');
+
   const $search = document.getElementById('search');
   const $themeToggle = document.getElementById('theme-toggle');
   const $fileBtn = document.getElementById('file-btn');
   const $fileInput = document.getElementById('file-input');
   const $typingIndicator = document.getElementById('typing-indicator');
   const $backArrow = document.getElementById('back-arrow');
+  const $newChat = document.getElementById('new-chat');
+  const $newChatModal = document.getElementById('new-chat-modal');
+  const $chatIdInput = document.getElementById('invite-link'); // Input для ID чата
+  const $joinChat = document.getElementById('copy-link'); // Кнопка "Unirse"
+  const $closeModal = document.getElementById('close-modal');
 
   function getAvatarInitials(name) {
     return name.charAt(0).toUpperCase();
-  }
-
-  function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
   }
 
   function addChatToList(chatId) {
@@ -60,7 +53,7 @@
   let pendingChatId = null;
 
   function switchChat(chatId) {
-    if (!chatId) return;
+    if (!chatId || currentChat === chatId) return;
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       pendingChatId = chatId;
       return;
@@ -79,9 +72,6 @@
     $messages.innerHTML = '';
     $chatStatus.textContent = 'Cargando...';
     messageElements = [];
-    if (window.innerWidth <= 768) {
-      document.querySelector('.app').classList.add('chat-view');
-    }
   }
 
   function addMessage(msg, index = null) {
@@ -382,6 +372,35 @@
     window.location.href = '/login';
   });
 
+  $newChat.addEventListener('click', () => {
+    $chatIdInput.value = '';
+    $chatIdInput.placeholder = 'ID del chat';
+    $joinChat.textContent = 'Unirse';
+    $newChatModal.classList.add('show');
+    $chatIdInput.focus();
+  });
+
+  $joinChat.addEventListener('click', () => {
+    const chatId = $chatIdInput.value.trim();
+    if (!chatId) {
+      alert('Ingresa un ID de chat');
+      return;
+    }
+    addChatToList(chatId);
+    switchChat(chatId);
+    $newChatModal.classList.remove('show');
+  });
+
+  $closeModal.addEventListener('click', () => {
+    $newChatModal.classList.remove('show');
+  });
+
+  $chatIdInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      $joinChat.click();
+    }
+  });
+
   // Загрузить тему
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -394,44 +413,10 @@
     });
   }
 
-  let inviteChatId = null;
-
-  // Автоматическое присоединение по ссылке
-  const urlParams = new URLSearchParams(window.location.search);
-  inviteChatId = urlParams.get('chat');
-  if (inviteChatId) {
-    // Очистить URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
   let userName = localStorage.getItem('username');
   if (!userName) {
-    if (inviteChatId) {
-      localStorage.setItem('inviteChat', inviteChatId);
-      addChatToList(inviteChatId);
-      if (window.innerWidth <= 768) {
-        document.querySelector('.app').classList.add('chat-view');
-      }
-    }
     window.location.href = '/register';
     return;
-  }
-
-  // Cargar chat de invitación si existe
-  if (inviteChatId) {
-    addChatToList(inviteChatId);
-    if (window.innerWidth <= 768) {
-      document.querySelector('.app').classList.add('chat-view');
-    }
-  } else {
-    inviteChatId = localStorage.getItem('inviteChat');
-    if (inviteChatId) {
-      addChatToList(inviteChatId);
-      localStorage.removeItem('inviteChat');
-      if (window.innerWidth <= 768) {
-        document.querySelector('.app').classList.add('chat-view');
-      }
-    }
   }
 
   connect(userName);
