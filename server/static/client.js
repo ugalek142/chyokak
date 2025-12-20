@@ -33,15 +33,19 @@
     return name.charAt(0).toUpperCase();
   }
 
-  function addChatToList(chatId) {
+  function generateChatId(email1, email2) {
+    return [email1, email2].sort().join('-');
+  }
+
+  function addChatToList(chatId, displayName = null) {
     if (!chatId || document.querySelector(`[data-chat-id="${chatId}"]`)) return;
     const chatItem = document.createElement('div');
     chatItem.className = 'chat-item';
     chatItem.dataset.chatId = chatId;
     chatItem.innerHTML = `
-      <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ddd'/><text x='50' y='65' text-anchor='middle' fill='%23666' font-size='40'>${getAvatarInitials(chatId)}</text></svg>" alt="${chatId}">
+      <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ddd'/><text x='50' y='65' text-anchor='middle' fill='%23666' font-size='40'>${getAvatarInitials(displayName || chatId)}</text></svg>" alt="${displayName || chatId}">
       <div class="chat-info">
-        <div class="chat-name">${escapeHtml(chatId)}</div>
+        <div class="chat-name">${escapeHtml(displayName || chatId)}</div>
         <div class="last-msg">Nuevo chat</div>
       </div>
       <div class="chat-time">${new Date().toLocaleTimeString()}</div>
@@ -368,25 +372,30 @@
   });
 
   document.getElementById('logout').addEventListener('click', () => {
-    localStorage.removeItem('username');
+    localStorage.removeItem('email');
     window.location.href = '/login';
   });
 
   $newChat.addEventListener('click', () => {
     $chatIdInput.value = '';
-    $chatIdInput.placeholder = 'ID del chat';
-    $joinChat.textContent = 'Unirse';
+    $chatIdInput.placeholder = 'Email del contacto';
+    $joinChat.textContent = 'Crear Chat';
     $newChatModal.classList.add('show');
     $chatIdInput.focus();
   });
 
   $joinChat.addEventListener('click', () => {
-    const chatId = $chatIdInput.value.trim();
-    if (!chatId) {
-      alert('Ingresa un ID de chat');
+    const otherEmail = $chatIdInput.value.trim();
+    if (!otherEmail) {
+      alert('Ingresa un email');
       return;
     }
-    addChatToList(chatId);
+    if (otherEmail === currentUser) {
+      alert('No puedes chatear contigo mismo');
+      return;
+    }
+    const chatId = generateChatId(currentUser, otherEmail);
+    addChatToList(chatId, otherEmail);
     switchChat(chatId);
     $newChatModal.classList.remove('show');
   });
@@ -413,7 +422,7 @@
     });
   }
 
-  let userName = localStorage.getItem('username');
+  let userName = localStorage.getItem('email');
   if (!userName) {
     window.location.href = '/register';
     return;
